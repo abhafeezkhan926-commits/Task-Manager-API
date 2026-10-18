@@ -1,0 +1,25 @@
+BHAI — START HERE
+=================
+
+YEH SIRF BACKEND HAI. Is ZIP mein koi frontend nahi hai.
+
+1) ZIP extract karo, folder VS Code mein kholo.
+2) VS Code terminal mein chalao:
+   npm install
+   Copy-Item .env.example .env
+3) .env file kholo aur apni MongoDB Atlas URI aur Groq API key add karo.
+   Placeholders ko replace kiye baghair API connect nahi hogi.
+4) Server chalao:
+   npm run dev
+5) Browser/Postman mein kholo:
+   http://localhost:5000/
+   http://localhost:5000/health
+6) Postman ke Import option se postman/Task-Manager-API.postman_collection.json import karo.
+   Requests ko order mein run karo.
+7) Full explanation, endpoint examples, deployment, aur research topics README.md mein hain.
+
+Important:
+- Real .env ko GitHub par push mat karna.
+- Groq API key ke baghair AI endpoint actual plan generate nahi kar sakta.
+- MongoDB Atlas URI aur Groq key tumhari apni honi chahiye.
+- Node.js 20+ use karo.

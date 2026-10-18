@@ -1,0 +1,94 @@
+{
+  "info": {
+    "_postman_id": "9d46d944-1c55-4c5d-b6c1-4d4eeabef731",
+    "name": "Task Manager API with AI",
+    "description": "Backend API assignment tests. Run in order. Create stores the new task ID in the collection variable taskId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "taskId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 - API Root",
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Root returns 200', function () { pm.response.to.have.status(200); });"] } }]
+    },
+    {
+      "name": "01 - Health Check",
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/health" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Health endpoint responds', function () { pm.expect([200, 503]).to.include(pm.response.code); });"] } }]
+    },
+    {
+      "name": "02 - Create Task",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Build portfolio website\",\n  \"description\": \"Create a responsive portfolio using React\",\n  \"status\": \"pending\",\n  \"dueDate\": \"2026-10-20\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/tasks"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Task was created', function () { pm.response.to.have.status(201); });", "const json = pm.response.json();", "if (json && json.data && json.data._id) { pm.collectionVariables.set('taskId', json.data._id); }", "pm.test('Created task has ID', function () { pm.expect(json.data._id).to.be.a('string'); });"] } }]
+    },
+    {
+      "name": "03 - Get All Tasks",
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/tasks" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Task list returns 200', function () { pm.response.to.have.status(200); });", "pm.test('Response has data array', function () { pm.expect(pm.response.json().data).to.be.an('array'); });"] } }]
+    },
+    {
+      "name": "04 - Get Single Task",
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/tasks/{{taskId}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Single task returns 200', function () { pm.response.to.have.status(200); });"] } }]
+    },
+    {
+      "name": "05 - Update Task",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"in-progress\",\n  \"description\": \"Portfolio layout is in progress\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/tasks/{{taskId}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Task update returns 200', function () { pm.response.to.have.status(200); });", "pm.test('Status updated', function () { pm.expect(pm.response.json().data.status).to.eql('in-progress'); });"] } }]
+    },
+    {
+      "name": "06 - Missing Required Title (expected 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"description\": \"Title intentionally omitted\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/tasks"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Missing title returns 400', function () { pm.response.to.have.status(400); });"] } }]
+    },
+    {
+      "name": "07 - Invalid Task ID (expected 400)",
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/tasks/not-a-valid-mongodb-id" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Invalid ID returns 400', function () { pm.response.to.have.status(400); });"] } }]
+    },
+    {
+      "name": "08 - AI Plan Task",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"description\": \"I need to build a portfolio website within three days.\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/ai/plan-task"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('AI returns a plan when provider is configured', function () {", "  if (pm.response.code === 200) {", "    const json = pm.response.json();", "    pm.expect(json.success).to.eql(true);", "    pm.expect(json.plan.summary).to.be.a('string');", "    pm.expect(['low', 'medium', 'high']).to.include(json.plan.priority);", "    pm.expect(json.plan.estimatedHours).to.be.a('number');", "    pm.expect(json.plan.steps).to.be.an('array');", "  } else {", "    console.log('AI test needs a valid key/model/quota. Response:', pm.response.text());", "  }", "});"] } }]
+    },
+    {
+      "name": "09 - Missing AI Description (expected 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/ai/plan-task"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Missing AI description returns 400', function () { pm.response.to.have.status(400); });"] } }]
+    },
+    {
+      "name": "10 - Delete Task",
+      "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/api/tasks/{{taskId}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Task deletion returns 200', function () { pm.response.to.have.status(200); });"] } }]
+    }
+  ]
+}
